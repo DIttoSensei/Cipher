@@ -1,0 +1,10 @@
+"challenge" : {
+
+                'type' : '',
+                'prompt' : """""",
+
+                'answers': [],
+                'next': {},
+                'cpu': {}
+
+            },

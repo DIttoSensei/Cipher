@@ -1,0 +1,45 @@
+<ChatBotWidget>:
+    orientation: 'vertical'
+    ScrollView:
+        id: scroll_view
+        size_hint: (1, 0.75)  # 75% height for chat history
+        do_scroll_x: False
+        scroll_timeout: 100
+        scroll_distance: 20
+        effect_cls: 'ScrollEffect'  # Smooth scrolling
+        Label:
+            id: chat_label
+            text: root.chat_history
+            text_size: self.width - 40, None
+            size_hint_y: None
+            height: self.texture_size[1]
+            halign: 'left'
+            valign: 'top'
+            color: 1, 1, 1, 1
+            font_size: '20sp'
+            padding: 20, 20
+            markup: True  # Enable bold
+    BoxLayout:
+        id: input_layout
+        size_hint: (1, 0.25)  # 25% for input area
+        pos: 0, 0
+        TextInput:
+            id: user_input
+            multiline: False
+            hint_text: 'Type command (e.g., start, exit)'
+            font_size: '18sp'
+            padding: [15, 15, 15, 15]
+            foreground_color: 1, 1, 1, 1
+            background_color: 0.4, 0.4, 0.4, 1
+            size_hint_y: None
+            height: '60dp'
+            on_text_validate: root.process_input(self.text); self.text = ''
+        Button:
+            id: send_button
+            text: 'Send'
+            size_hint_x: 0.35
+            size_hint_y: None
+            height: '60dp'
+            font_size: '18sp'
+            background_color: 0, 0.5, 1, 1
+            on_press: root.process_input(user_input.text); user_input.text = ''
