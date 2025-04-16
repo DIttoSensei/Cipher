@@ -30,18 +30,20 @@ Cipher is an interactive chatbot application built using Python and Kivy. It fea
    cd cipher-chatbot
 
 2. Install the required dependencies:
+    ```bash
     pip install -r requirements.txt
 
 3. Run the application:
+    ```bash
     python main.py
 
 
 ## Customization
 
-1. Add New Challenges:
+1. **Add New Challenges**:
     Edit the dialogue_tree in dataset.py to add new challenges, riddles, or traps.
 
-2. Change Background Music:
+2. **Change Background Music**:
     Replace or add music files in the assets/ directory and update the bg_music key in dataset.py.
 
 
