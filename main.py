@@ -18,6 +18,10 @@ class ChatBotWidget(BoxLayout):
         self.is_game_started = False  # Track if the game has started
         self.typewriter_event = None 
         self.typewriter_sound = None 
+        self.timer_seconds = 60  # Set the timer to 1 minute (60 seconds)
+        self.timer_event = None  # Event for the countdown timer
+        
+        Clock.schedule_once(self.set_focus, 0.1)  # Auto-focus on TextInput
 
         # Display initial command list with bold BOT
         self.chat_history = (
@@ -32,9 +36,60 @@ class ChatBotWidget(BoxLayout):
             "\n"
         )
         # Bind keyboard height changes to adjust input area
-        Window.bind(on_keyboard_height=self.on_keyboard_height)
+        #Window.bind(on_keyboard_height=self.on_keyboard_height)
         # Store original input area position
         self.input_layout = None
+
+    def start_timer(self):
+        """Start the countdown timer."""
+        self.timer_seconds = 60  # Reset the timer to 1 minute
+        if self.timer_event:
+            self.timer_event.cancel()  # Cancel any existing timer
+        self.timer_event = Clock.schedule_interval(self.update_timer, 1)  # Update every second
+
+    def stop_timer(self):
+        """Stop the countdown timer."""
+        if self.timer_event:
+            self.timer_event.cancel()
+            self.timer_event = None
+    
+    
+    def update_timer(self, dt):
+        """Update the timer every second."""
+        if self.timer_seconds > 0:
+            self.timer_seconds -= 1
+            minutes = self.timer_seconds // 60
+            seconds = self.timer_seconds % 60
+            self.ids.timer_label.text = f"{minutes:02}:{seconds:02}"  # Update the timer label
+        else:
+            # Timer reached zero, stop the timer and trigger Game Over
+            if self.timer_event:
+                self.timer_event.cancel()
+                self.timer_event = None
+            self.time_up()
+
+    def time_up(self):
+        """Handle the 'Time Up' scenario."""
+        self.typewriter_effect(
+            "\n[b]Curator ->[/b] Time's up! The collar explodes, taking your head along with it.",
+            shake=False,
+            callback=lambda: Clock.schedule_once(self.show_game_over, 2)
+        )
+        self.is_game_started = False  # Mark the game as not started
+
+    def set_focus(self, *args):
+        """Ensure the TextInput always has focus."""
+        self.ids.user_input.focus = True
+
+    def add_to_input(self, key):
+        """Add a key to the TextInput."""
+        self.ids.user_input.text += key
+        self.set_focus()  # Keep focus on TextInput
+
+    def backspace_input(self):
+        """Remove the last character from the TextInput."""
+        self.ids.user_input.text = self.ids.user_input.text[:-1]
+        self.set_focus()  # Keep focus on TextInput
 
     def start_bg_music(self, music_file='assets/bg_music2.mp3', speed=1.0, loop=True):
         """Start playing background music, with an option to loop or play once."""
@@ -102,17 +157,12 @@ class ChatBotWidget(BoxLayout):
      # Schedule the typewriter effect
         if self.typewriter_event:
             self.typewriter_event.cancel()
-        self.typewriter_event = Clock.schedule_interval(self._add_character, 0.05)
+        self.typewriter_event = Clock.schedule_interval(self._add_character, 0.01)
 
     def _add_character(self, dt):
         """Add one character at a time to the chat history."""
         if self.char_index < len(self.full_text):
             char = self.full_text[self.char_index]
-
-            # Apply shake effect to random characters
-            if self.shake and char.isalnum() and randint(0, 4) == 0:  # 20% chance to shake
-                char = f"[b]{char}[/b]"  # Example shake effect
-
             self.current_text += char
             self.chat_history = self.current_text  # Update the chat history
             self.char_index += 1
@@ -131,23 +181,16 @@ class ChatBotWidget(BoxLayout):
             if self.callback:
                 self.callback()
 
-
     def on_parent(self, instance, value):
         """Set input_layout after widget is added to parent."""
         if value:
             self.input_layout = self.ids.input_layout
 
-    def on_keyboard_height(self, window, keyboard_height):
-        """Adjust input area position when keyboard appears."""
-        if not self.input_layout:
-            return
-        if keyboard_height > 0:
-            # Move input area above keyboard
-            Animation(pos=(0, keyboard_height), duration=0.2).start(self.input_layout)
-        else:
-            # Restore to original position
-            Animation(pos=(0, 0), duration=0.2).start(self.input_layout)
 
+    def on_focus(self, instance, value):
+        if value:
+            Clock.schedule_once(lambda dt: self.scroll_to_bottom(), 0.1)
+            
     def scroll_to_bottom(self):
         """Animate scroll to bottom of ScrollView."""
         scroll_view = self.ids.scroll_view
@@ -166,15 +209,17 @@ class ChatBotWidget(BoxLayout):
         if user_input.lower().strip() == 'exit':
             self.chat_history += "\n[b]BOT ->[/b] Exiting the game. Goodbye!"
             self.stop_bg_music()  # Stop background music
+            self.stop_timer()  # Stop the timer
             App.get_running_app().stop()  # Close the app
             return
 
         # Handle initial 'start' command
-        if not self.is_game_started or user_input.lower().strip() == 'start':
+        if user_input.lower().strip() == 'start':
             # Reset the game state
             self.dataset.current_node = 'start'  # Reset to the start node
             self.is_game_started = True  # Mark the game as started
             self.played_music_nodes = set()  # Clear played music tracking
+            self.chat_history += "\n[b]BOT ->[/b] Starting a new game...\n"
             response, bg_music = self.dataset.processing(user_input)
             print(f"Start command bg_music: {bg_music}")  # Debugging
             if bg_music:
@@ -183,6 +228,7 @@ class ChatBotWidget(BoxLayout):
                 self.stop_bg_music()
             self.typewriter_effect(f"\n[b]Curator ->[/b] {response}", shake=True)
             self.scroll_to_bottom()
+            self.start_timer()  # Start the timer when the game begins
             return
 
         # Handle riddle answers
@@ -199,23 +245,30 @@ class ChatBotWidget(BoxLayout):
 
         # Check if the response contains "TRAP" or other game-ending conditions
         if "TRAP" in response or "Oh no!" in response or "not the right answer" in response:
+            # Stop the timer
+            self.stop_timer()
             # Play the trap music while displaying the response
-            self.typewriter_effect(response, shake=False, callback=self.show_game_over)
+            self.typewriter_effect(response, shake=False, callback=lambda: Clock.schedule_once(self.show_game_over, 2))
+            self.is_game_started = False  # Mark the game as not started
             return
 
         # Handle success conditions
         if "Congratulations" in response or "escape the room" in response:
+            # Stop the timer
+            self.stop_timer()
             # Display the success message first, then show "Game Over"
-            self.typewriter_effect(response, shake=False, callback=self.show_game_over)
+            self.typewriter_effect(response, shake=False, callback=lambda: Clock.schedule_once(self.show_game_over, 2))
             self.stop_bg_music()
-            self.is_game_started = False
+            self.is_game_started = False  # Mark the game as not started
             return
 
         # Continue the game for non-ending responses
         self.typewriter_effect(response, shake=False)
         self.scroll_to_bottom()
 
-    def show_game_over(self):
+        self.set_focus()  # Keep focus on TextInput
+
+    def show_game_over(self, dt=None):
         """Display the Game Over message after the typewriter effect finishes."""
         self.typewriter_effect("\n[b]BOT ->[/b] Game over! Type 'start' to play again or 'exit' to quit.")
 

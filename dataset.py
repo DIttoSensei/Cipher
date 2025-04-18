@@ -8,14 +8,7 @@ class DataSet:
             'start': {
 
                 'type': 'riddle',
-                'prompt': """You awaken in pitch-black darkness, your head throbbing, wrists sore, 
-and a cold metal collar clamped tightly around your neck. The air is damp, heavy with the scent of rust and decay. 
-No doors, no windows—just an oppressive void pressing in from all sides. 
-Your fingers brush against rough stone walls, slick with something you hope isn’t blood. Panic rises, 
-but before you can scream, a crackle pierces the silence, followed by a voice—smooth, taunting, 
-and dripping with malice:
-
-“Oh… that’s wonderful, you’re awake! I was starting to worry you’d sleep through the fun. Here’s the deal, 
+                'prompt': """“Oh… that’s wonderful, you’re awake! I was starting to worry you’d sleep through the fun. Here’s the deal, 
 my curious guest: you have exactly 3 minutes to escape this little… let’s call it a playroom. Solve the 
 challenges I’ve prepared, and you might find a way out. Fail, and that lovely collar around your neck? 
 It’s rigged to explode. Tick-tock, darling. Good luck.”

@@ -1,12 +1,29 @@
+<Button>:
+    background_color: (0, 0, 0, 1)  # Dark background for ominous look
+    border: (2, 2, 2, 2)  # Border thickness
+    canvas.before:
+        Color:
+            rgba: (1, 1, 1, 1)  # White border color
+        Line:
+            width: 2  # Border width
+            rectangle: self.x, self.y, self.width, self.height
+    color: (1, 1, 1, 1)  # White text color
+
+<TextInput>:
+    background_color: (0.4, 0.4, 0.4, 1)  # Gray background for all TextInputs
+    foreground_color: (0, 0, 0, 1)  # Black text color for all TextInputs
+    cursor_color: (0, 0, 0, 1)  # Black cursor color
+
 <ChatBotWidget>:
     orientation: 'vertical'
+
     ScrollView:
         id: scroll_view
-        size_hint: (1, 0.75)  # 75% height for chat history
+        size_hint: (1, 0.55)  # 55% height for chat history
         do_scroll_x: False
         scroll_timeout: 100
         scroll_distance: 20
-        effect_cls: 'ScrollEffect'  # Smooth scrolling
+        effect_cls: 'ScrollEffect'
         Label:
             id: chat_label
             text: root.chat_history
@@ -18,28 +35,50 @@
             color: 1, 1, 1, 1
             font_size: '20sp'
             padding: 20, 20
-            markup: True  # Enable bold
+            markup: True
+
     BoxLayout:
         id: input_layout
-        size_hint: (1, 0.25)  # 25% for input area
-        pos: 0, 0
+        size_hint: (1, 0.1)  # 15% height for input area
+        orientation: 'horizontal'
         TextInput:
             id: user_input
             multiline: False
-            hint_text: 'Type command (e.g., start, exit)'
+            hint_text: 'Type your message here...'
             font_size: '18sp'
-            padding: [15, 15, 15, 15]
-            foreground_color: 1, 1, 1, 1
-            background_color: 0.4, 0.4, 0.4, 1
-            size_hint_y: None
-            height: '60dp'
+            focus: False  # Disable Android keyboard
             on_text_validate: root.process_input(self.text); self.text = ''
+            hint_text_color: (0.5, 0.5, 0.5, 1)  # Gray color for hint text
+            foreground_color: (0, 0, 0, 1)  # Black color for typed text
+            cursor_color: (0, 0, 0, 1)  # Black cursor color
+            background_color: (0.4, 0.4, 0.4, 1)  # Gray background
+            canvas.before:
+                Color:
+                    rgba: (1, 1, 1, 1)  # White border color
+                Line:
+                    width: 2  # Border width
+                    rectangle: self.x, self.y, self.width, self.height
         Button:
             id: send_button
             text: 'Send'
-            size_hint_x: 0.35
-            size_hint_y: None
-            height: '60dp'
-            font_size: '18sp'
-            background_color: 0, 0.5, 1, 1
+            size_hint_x: 0.3
             on_press: root.process_input(user_input.text); user_input.text = ''
+
+    GridLayout:
+        id: timer
+        cols: 1
+        size_hint: (1, 0.45) # Adjust height for the timer
+        canvas.before:
+            Color:
+                rgba: (0.1, 0.1, 0.1, 1)  # Dark gray background
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        Label:
+            id: timer_label
+            text: "01:00"  # Initial timer value
+            font_size: '30sp'
+            color: (1, 0, 0, 1)  # Red text color for urgency
+            halign: 'center'
+            valign: 'middle'
+            size_hint: (1, 1)
