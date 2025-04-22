@@ -52,3 +52,4 @@ Cipher is an interactive chatbot application built using Python and Kivy. It fea
 - **Developer:** Andrew Richard
 - **Framwork:** Kivy
 - **Build Tools:** Buildozer
+- **Audio:** Gory Explosion FX" By Lux Aeterna, All artist on pixabay.com (sorry couldn't trace their names lost the credit file i once wrote)

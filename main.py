@@ -1,3 +1,6 @@
+# Advice: Make sure you know how this works, refer to the documentation if needed and .kv file
+
+
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty
@@ -18,40 +21,63 @@ class ChatBotWidget(BoxLayout):
         self.is_game_started = False  # Track if the game has started
         self.typewriter_event = None 
         self.typewriter_sound = None 
-        self.timer_seconds = 60  # Set the timer to 1 minute (60 seconds)
+        self.timer_seconds = 300  # Set the timer to 5 minute (300 seconds)
         self.timer_event = None  # Event for the countdown timer
         
         Clock.schedule_once(self.set_focus, 0.1)  # Auto-focus on TextInput
 
+        # Bind the screen tap to skip the typewriter effect
+        Window.bind(on_touch_down=lambda *args: self.skip_typewriter())
+
         # Display initial command list with bold BOT
         self.chat_history = (
-            "-----------------------\n"
-            "-----------------------\n"
-            "       [b]Cipher[/b]\n"
-            "-----------------------\n"
-            "-----------------------\n"
-            
-            "\n[b]BOT ->[/b] Please type 'start' to begin or 'exit' to quit\n"
-            "\n"
-            "\n"
-        )
+    "█████████████████████████\n"
+    "█████████████████████████\n"
+    "██                     \n"
+    "██ [b]Cipher ChatBot[/b]\n"
+    "██                     \n"
+    "█████████████████████████\n"
+    "█████████████████████████\n"
+    "\n[b]BOT ->[/b] [i]Welcome to Cipher ChatBot![/i]\n"
+    "[b]BOT ->[/b] [i]Use HeadPhones for best Experience[/i]\n"
+    "[b]BOT ->[/b] [i]Please type 'start' to begin or 'exit' to quit.[/i]\n"
+    "\n"
+)
         # Bind keyboard height changes to adjust input area
         #Window.bind(on_keyboard_height=self.on_keyboard_height)
         # Store original input area position
         self.input_layout = None
 
+    def play_send_sound(self):
+        """Play the send button sound."""
+        send_sound = SoundLoader.load('assets/beep.mp3')  # Replace with your sound file path
+        if send_sound:
+            send_sound.play()
+
     def start_timer(self):
         """Start the countdown timer."""
-        self.timer_seconds = 60  # Reset the timer to 1 minute
+        self.timer_seconds = 300  # Reset the timer to 5 minute
         if self.timer_event:
             self.timer_event.cancel()  # Cancel any existing timer
         self.timer_event = Clock.schedule_interval(self.update_timer, 1)  # Update every second
+        # Load and play the timer sound
+
+        self.timer_sound = SoundLoader.load('assets/timer.mp3')  # Store the sound object
+        if self.timer_sound:
+            self.timer_sound.loop = True  # Loop the sound while the timer is running
+            self.timer_sound.play()
+
 
     def stop_timer(self):
         """Stop the countdown timer."""
         if self.timer_event:
             self.timer_event.cancel()
             self.timer_event = None
+        
+        #self.timer_sound = SoundLoader.load('assets/timer.mp3')  # Store the sound object
+        if self.timer_sound:
+            self.timer_sound.stop()
+
     
     
     def update_timer(self, dt):
@@ -154,10 +180,24 @@ class ChatBotWidget(BoxLayout):
         # Start the typewriter sound
         self.play_typewriter_sound()
 
+        # Adjust the interval dynamically based on text length
+        interval = 0.02 if len(text) < 100 else 0.03  # Longer interval for longer text
+
+
      # Schedule the typewriter effect
         if self.typewriter_event:
             self.typewriter_event.cancel()
-        self.typewriter_event = Clock.schedule_interval(self._add_character, 0.01)
+        self.typewriter_event = Clock.schedule_interval(self._add_character, interval)
+
+    def skip_typewriter(self):
+        """Skip the typewriter effect and display the full text immediately."""
+        if self.typewriter_event:  # If the typewriter is running
+            self.typewriter_event.cancel()  # Cancel the typewriter effect
+            self.typewriter_event = None  # Clear the event
+            self.stop_typewriter_sound()  # Stop the typewriter sound
+            self.chat_history = self.full_text  # Display the full text immediately
+            if self.callback:  # If there's a callback, execute it
+                self.callback()
 
     def _add_character(self, dt):
         """Add one character at a time to the chat history."""
@@ -172,10 +212,8 @@ class ChatBotWidget(BoxLayout):
                 self.typewriter_event.cancel()
                 self.typewriter_event = None
 
-
             # Stop the typewriter sound
             self.stop_typewriter_sound()
-
 
             # Call the callback function if provided
             if self.callback:
@@ -205,30 +243,40 @@ class ChatBotWidget(BoxLayout):
         self.chat_history += f"[b]\nUser ->[/b] {user_input}\n"
         self.scroll_to_bottom()  # Scroll after user input
 
+
+        # Check if the game is in a "Game Over" state
+        if not self.is_game_started:
+            if user_input.lower().strip() == 'start':
+                # Reset the game state
+                self.dataset.current_node = 'start'  # Reset to the start node
+                self.is_game_started = True  # Mark the game as started
+                self.played_music_nodes = set()  # Clear played music tracking
+                self.chat_history += "\n[b]BOT ->[/b] Starting a new game...\n"
+                response, bg_music = self.dataset.processing(user_input)
+                print(f"Start command bg_music: {bg_music}")  # Debugging
+                if bg_music:
+                    self.start_bg_music(bg_music.get('file'), bg_music.get('speed', 1.0))
+                else:
+                    self.stop_bg_music()
+                self.typewriter_effect(f"\n[b]Curator ->[/b] {response}", shake=True)
+                self.scroll_to_bottom()
+                self.start_timer()  # Start the timer when the game begins
+            elif user_input.lower().strip() == 'exit':
+                self.chat_history += "\n[b]BOT ->[/b] Exiting the game. Goodbye!"
+                self.stop_bg_music()  # Stop background music
+                self.stop_timer()  # Stop the timer
+                App.get_running_app().stop()  # Close the app
+            else:
+                # Resend the "Game Over" prompt
+                self.typewriter_effect("\n[b]BOT ->[/b] Invalid input. Please type 'start' to play or 'exit' to quit.")
+            return
+
         # Handle 'exit'
         if user_input.lower().strip() == 'exit':
             self.chat_history += "\n[b]BOT ->[/b] Exiting the game. Goodbye!"
             self.stop_bg_music()  # Stop background music
             self.stop_timer()  # Stop the timer
             App.get_running_app().stop()  # Close the app
-            return
-
-        # Handle initial 'start' command
-        if user_input.lower().strip() == 'start':
-            # Reset the game state
-            self.dataset.current_node = 'start'  # Reset to the start node
-            self.is_game_started = True  # Mark the game as started
-            self.played_music_nodes = set()  # Clear played music tracking
-            self.chat_history += "\n[b]BOT ->[/b] Starting a new game...\n"
-            response, bg_music = self.dataset.processing(user_input)
-            print(f"Start command bg_music: {bg_music}")  # Debugging
-            if bg_music:
-                self.start_bg_music(bg_music.get('file'), bg_music.get('speed', 1.0))
-            else:
-                self.stop_bg_music()
-            self.typewriter_effect(f"\n[b]Curator ->[/b] {response}", shake=True)
-            self.scroll_to_bottom()
-            self.start_timer()  # Start the timer when the game begins
             return
 
         # Handle riddle answers
@@ -238,7 +286,7 @@ class ChatBotWidget(BoxLayout):
         # Start the background music (if any) before displaying the response
         if bg_music:
             # Play trap or jumpscare music only once
-            loop = False if "TRAP" in response or "jumpscare" in bg_music.get('file', '') else True
+            loop = False if "TRAP" in response or "jumpscare" in bg_music.get('file', '') or "Gory" in bg_music.get('file', '') or "fall_water" in bg_music.get('file', '') else True
             self.start_bg_music(bg_music.get('file'), bg_music.get('speed', 1.0), loop=loop)
         else:
             self.stop_bg_music()

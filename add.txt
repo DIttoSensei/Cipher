@@ -1,0 +1,79 @@
+"challenge25": {
+    'type': 'riddle',
+    'prompt': """The screen flickers on.  
+Five names appear, then vanish.
+
+[b]“He tried.  
+She failed.  
+They screamed.  
+It ran.  
+You watched.”[/b]
+
+A pause.
+
+Then, one final line:
+
+[b]“Who’s still here?”[/b]
+
+The cursor blinks.  
+It waits for an answer.  
+So do you.""",
+
+    'answers': ['me'],
+    'next': {
+        'me': 'challenge26'
+    },
+    'cpu': {
+        'me': "The screen doesn’t respond.  
+It just turns off — like it already knew what you'd say."
+    },
+    'bg_music': {'file': 'assets/room_silence.mp3', 'speed': 1.0}
+}
+
+
+"challenge14": {
+    'prompt': """A blank screen. Static.
+
+A keypad appears: [_ _ _ _]
+
+There is no hint. No context.
+
+But... you feel like you've typed this before.""",
+    'answers': ['7293'],
+    ...
+}
+
+
+
+"challenge20": {
+    'type': 'riddle',
+    'prompt': """You wake up again.
+
+Same walls. Same flickering bulb. Same buzzing hum.
+But this time… something is different.
+
+A figure stands where no one stood before.
+
+[b]NPC:[/b] "You always come back, don’t you? Even when [i]he[/i] dies..."
+
+They step closer, staring [i]through[/i] you.
+
+[b]NPC:[/b] "Tell me, how many times have you heard this scream?"
+
+A familiar sound starts. But now… you remember it. You don’t flinch.""",
+    
+    'answers': ['i lost count', 'too many', 'infinite', 'doesn’t matter'],
+    'next': {
+        'i lost count': 'challenge21',
+        'too many': 'challenge21',
+        'infinite': 'challenge21',
+        'doesn’t matter': 'challenge21'
+    },
+    'cpu': {
+        'i lost count': "The figure smiles. Not at you. [i]At the one behind your eyes.[/i]",
+        'too many': "They nod. 'Good. That means you’re learning.'",
+        'infinite': "They whisper: 'Only you remember. That’s your curse… or your edge.'",
+        'doesn’t matter': "Silence. Then a nod. The room bends. Time [b]shifts.[/b]"
+    },
+    'bg_music': {'file': 'assets/loop_tension.wav', 'speed': 0.8}
+}

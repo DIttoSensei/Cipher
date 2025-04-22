@@ -5,6 +5,7 @@
 
                 'answers': [],
                 'next': {},
-                'cpu': {}
+                'cpu': {},
+                'bg_music' : {'file' : 'assets/', 'speed': 1.0}
 
             },

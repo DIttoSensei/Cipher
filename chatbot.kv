@@ -1,3 +1,6 @@
+
+
+
 <Button>:
     background_color: (0, 0, 0, 1)  # Dark background for ominous look
     border: (2, 2, 2, 2)  # Border thickness
@@ -62,7 +65,9 @@
             id: send_button
             text: 'Send'
             size_hint_x: 0.3
-            on_press: root.process_input(user_input.text); user_input.text = ''
+            on_press: 
+                root.play_send_sound()  # Call the method to play the sound
+                root.process_input(user_input.text); user_input.text = ''
 
     GridLayout:
         id: timer
@@ -76,7 +81,7 @@
                 size: self.size
         Label:
             id: timer_label
-            text: "01:00"  # Initial timer value
+            text: "05:00"  # Initial timer value
             font_size: '30sp'
             color: (1, 0, 0, 1)  # Red text color for urgency
             halign: 'center'
