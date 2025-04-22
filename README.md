@@ -73,11 +73,11 @@ Regardless of which distro you use i'm pretty sure it still the same:
 
 7. The build process should begin. Now if you encounter errors of pakages not installing properly for the build process, go to the target folder prompting the error and install it manually, either by zip of by git, make sure the paths are the same. After all that you shold be good, most errors you should encounter are: Python version, SDK version, files not found in path ( Install manually )
 
-8. Run step 6 again, and by all means should you run:
+8. Run step 6 again, and do not by all means should you run:
     ```bash
     buildozer andriod clean
 
-This is basically claering all your hard work. Another ALternative is using goggle collab, install buildozer and run build.
+This is basically clearing all your hard work. Another ALternative is using goggle collab, install buildozer and run build.
 
 ## How To Edit Code
 A quick rundown on how the code works, the main.py and chatbot.kv handles the main code process and interface, .kv is more in charge of the interface which are then called in main to correspond with specific functions and input.
